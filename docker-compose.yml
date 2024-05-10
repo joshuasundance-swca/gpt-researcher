@@ -16,5 +16,7 @@ services:
       target: multiagent
     env_file:
       - .env
+    volumes:
+      - "./multi_agents/outputs:/usr/src/app/multi_agents/outputs"
     ports:
       - "8001:8001"

@@ -38,7 +38,7 @@ async def run_research_task(task: TaskRequest) -> FileResponse:
 # import requests
 #
 # p = {
-#   "query": "theory and history of translocation of Florida Scrub-Jays",
+#   "query": "increased flooding risks due to climate change in Astor, FL",
 #   "max_sections": 3,
 #   "follow_guidelines": False,
 #   "model": "gpt-4-turbo",
