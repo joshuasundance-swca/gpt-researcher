@@ -34,3 +34,13 @@ COPY --chown=gpt-researcher:gpt-researcher ./ ./
 EXPOSE 8000
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 
+FROM gpt-researcher AS multiagent
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/home/gpt-researcher/.local/bin:$PATH"
+
+WORKDIR /usr/src/app/multi_agents
+RUN python -m pip install --user --no-cache-dir -r requirements.txt
+EXPOSE 8001
+CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8001"]
