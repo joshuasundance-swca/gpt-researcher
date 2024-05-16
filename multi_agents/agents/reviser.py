@@ -1,6 +1,7 @@
-from .utils.views import print_agent_output
-from .utils.llms import call_model
 import json
+
+from .utils.llms import acall_model
+from .utils.views import stream_agent_output
 
 sample_revision_notes = """
 {
@@ -12,10 +13,10 @@ sample_revision_notes = """
 """
 
 class ReviserAgent:
-    def __init__(self):
-        pass
+    def __init__(self, websocket=None):
+        self.websocket = websocket
 
-    def revise_draft(self, draft_state: dict):
+    async def revise_draft(self, draft_state: dict):
         """
         Review a draft article
         :param draft_state:
@@ -38,15 +39,15 @@ You MUST return nothing but a JSON in the following format:
 """
         }]
 
-        response = call_model(prompt, model=task.get("model"), response_format='json')
+        response = await acall_model(prompt, model=task.get("model"), response_format='json')
         return json.loads(response)
 
-    def run(self, draft_state: dict):
-        print_agent_output(f"Rewriting draft based on feedback...", agent="REVISOR")
-        revision = self.revise_draft(draft_state)
+    async def run(self, draft_state: dict):
+        await stream_agent_output(self.websocket,f"Rewriting draft based on feedback...", agent="REVISOR")
+        revision = await self.revise_draft(draft_state)
 
         if draft_state.get("task").get("verbose"):
-            print_agent_output(f"Revision notes: {revision.get('revision_notes')}", agent="REVISOR")
+            await stream_agent_output(self.websocket, f"Revision notes: {revision.get('revision_notes')}", agent="REVISOR")
 
         return {"draft": revision.get("draft"),
                 "revision_notes": revision.get("revision_notes")}

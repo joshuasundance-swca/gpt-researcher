@@ -3,12 +3,13 @@ from .utils.file_formats import \
     write_md_to_word, \
     write_text_to_md
 
-from .utils.views import print_agent_output
+from .utils.views import print_agent_output, stream_agent_output
 
 
 class PublisherAgent:
-    def __init__(self, output_dir: str):
+    def __init__(self, output_dir: str, websocket=None):
         self.output_dir = output_dir
+        self.websocket = websocket
 
     async def publish_research_report(self, research_state: dict, publish_formats: dict):
         layout = self.generate_layout(research_state)
@@ -52,6 +53,6 @@ class PublisherAgent:
     async def run(self, research_state: dict):
         task = research_state.get("task")
         publish_formats = task.get("publish_formats")
-        print_agent_output(output="Publishing final research report based on retrieved data...", agent="PUBLISHER")
+        await stream_agent_output(self.websocket, output="Publishing final research report based on retrieved data...", agent="PUBLISHER")
         final_research_report = await self.publish_research_report(research_state, publish_formats)
         return {"report": final_research_report}

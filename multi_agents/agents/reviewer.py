@@ -1,15 +1,15 @@
-from .utils.views import print_agent_output
-from .utils.llms import call_model
+from .utils.llms import acall_model
+from .utils.views import stream_agent_output
 
 TEMPLATE = """You are an expert research article reviewer. \
 Your goal is to review research drafts and provide feedback to the reviser only based on specific guidelines. \
 """
 
 class ReviewerAgent:
-    def __init__(self):
-        pass
+    def __init__(self, websocket=None):
+        self.websocket = websocket
 
-    def review_draft(self, draft_state: dict):
+    async def review_draft(self, draft_state: dict):
         """
         Review a draft article
         :param draft_state:
@@ -41,27 +41,27 @@ Guidelines: {guidelines}\nDraft: {draft_state.get("draft")}\n
             "content": review_prompt
         }]
 
-        response = call_model(prompt, model=task.get("model"))
+        response = await acall_model(prompt, model=task.get("model"))
 
         if task.get("verbose"):
-            print_agent_output(f"Review feedback is: {response}...", agent="REVIEWER")
+            await stream_agent_output(self.websocket, f"Review feedback is: {response}...", agent="REVIEWER")
 
         if 'None' in response:
             return None
         return response
 
-    def run(self, draft_state: dict):
+    async def run(self, draft_state: dict):
         task = draft_state.get("task")
         guidelines = task.get("guidelines")
         to_follow_guidelines = task.get("follow_guidelines")
         review = None
         if to_follow_guidelines:
-            print_agent_output(f"Reviewing draft...", agent="REVIEWER")
+            await stream_agent_output(self.websocket, f"Reviewing draft...", agent="REVIEWER")
 
             if task.get("verbose"):
-                print_agent_output(f"Following guidelines {guidelines}...", agent="REVIEWER")
+                await stream_agent_output(self.websocket, f"Following guidelines {guidelines}...", agent="REVIEWER")
 
-            review = self.review_draft(draft_state)
+            review = await self.review_draft(draft_state)
         else:
-            print_agent_output(f"Ignoring guidelines...", agent="REVIEWER")
+            await stream_agent_output(self.websocket, f"Ignoring guidelines...", agent="REVIEWER")
         return {"review": review}

@@ -1,15 +1,15 @@
 from gpt_researcher import GPTResearcher
 from colorama import Fore, Style
-from .utils.views import print_agent_output
+from .utils.views import print_agent_output, stream_agent_output
 
 
 class ResearchAgent:
-    def __init__(self):
-        pass
+    def __init__(self, websocket=None):
+        self.websocket = websocket
 
     async def research(self, query: str, research_report: str = "research_report", parent_query: str = "", verbose=True):
         # Initialize the researcher
-        researcher = GPTResearcher(query=query, report_type=research_report, parent_query=parent_query, verbose=verbose)
+        researcher = GPTResearcher(query=query, report_type=research_report, parent_query=parent_query, verbose=verbose, websocket=self.websocket)
         # Conduct research on the given query
         await researcher.conduct_research()
         # Write the report
@@ -29,7 +29,7 @@ class ResearchAgent:
     async def run_initial_research(self, research_state: dict):
         task = research_state.get("task")
         query = task.get("query")
-        print_agent_output(f"Running initial research on the following query: {query}", agent="RESEARCHER")
+        await stream_agent_output(self.websocket, f"Running initial research on the following query: {query}", agent="RESEARCHER")
         return {"task": task, "initial_research": await self.research(query=query, verbose=task.get("verbose"))}
 
     async def run_depth_research(self, draft_state: dict):
@@ -37,6 +37,6 @@ class ResearchAgent:
         topic = draft_state.get("topic")
         parent_query = task.get("query")
         verbose = task.get("verbose")
-        print_agent_output(f"Running in depth research on the following report topic: {topic}", agent="RESEARCHER")
+        await stream_agent_output(self.websocket, f"Running in depth research on the following report topic: {topic}", agent="RESEARCHER")
         research_draft = await self.run_subtopic_research(parent_query, topic, verbose)
         return {"draft": research_draft}

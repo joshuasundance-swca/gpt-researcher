@@ -1,22 +1,23 @@
-from datetime import datetime
-from .utils.views import print_agent_output
-from .utils.llms import call_model
-from langgraph.graph import StateGraph, END
 import asyncio
 import json
+from datetime import datetime
 
+from langgraph.graph import StateGraph, END
 from memory.draft import DraftState
+
 from . import \
     ResearchAgent, \
     ReviewerAgent, \
     ReviserAgent
+from .utils.llms import acall_model
+from .utils.views import stream_agent_output
 
 
 class EditorAgent:
-    def __init__(self):
-        pass
+    def __init__(self, websocket=None):
+        self.websocket = websocket
 
-    def plan_research(self, research_state: dict):
+    async def plan_research(self, research_state: dict):
         """
         Curate relevant sources for a query
         :param summary_report:
@@ -46,8 +47,8 @@ class EditorAgent:
                        f"sections: ['section header 1', 'section header 2', 'section header 3' ...]}}.\n "
         }]
 
-        print_agent_output(f"Planning an outline layout based on initial research...", agent="EDITOR")
-        response = call_model(prompt=prompt, model=task.get("model"), response_format="json")
+        await stream_agent_output(self.websocket, f"Planning an outline layout based on initial research...", agent="EDITOR")
+        response = await acall_model(prompt=prompt, model=task.get("model"), response_format="json")
         plan = json.loads(response)
 
         return {
@@ -57,9 +58,9 @@ class EditorAgent:
         }
 
     async def run_parallel_research(self, research_state: dict):
-        research_agent = ResearchAgent()
-        reviewer_agent = ReviewerAgent()
-        reviser_agent = ReviserAgent()
+        research_agent = ResearchAgent(self.websocket)
+        reviewer_agent = ReviewerAgent(self.websocket)
+        reviser_agent = ReviserAgent(self.websocket)
         queries = research_state.get("sections")
         title = research_state.get("title")
         workflow = StateGraph(DraftState)
@@ -79,7 +80,7 @@ class EditorAgent:
         chain = workflow.compile()
 
         # Execute the graph for each query in parallel
-        print_agent_output(f"Running the following research tasks in parallel: {queries}...", agent="EDITOR")
+        await stream_agent_output(self.websocket, f"Running the following research tasks in parallel: {queries}...", agent="EDITOR")
         final_drafts = [chain.ainvoke({"task": research_state.get("task"), "topic": query, "title": title})
                         for query in queries]
         research_results = [result['draft'] for result in await asyncio.gather(*final_drafts)]

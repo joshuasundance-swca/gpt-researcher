@@ -2,19 +2,19 @@ import os
 import time
 from langgraph.graph.graph import CompiledGraph
 from langgraph.graph.state import StateGraph, END
-from .utils.views import print_agent_output
+from .utils.views import print_agent_output, stream_agent_output
 from memory.research import ResearchState
 
 # Import agent classes
 from . import WriterAgent, EditorAgent, PublisherAgent, ResearchAgent
 
 
-def init_research_team_from_args(output_dir: str) -> CompiledGraph:
+def init_research_team_from_args(output_dir: str, websocket=None) -> CompiledGraph:
     # Initialize agents
-    writer_agent = WriterAgent()
-    editor_agent = EditorAgent()
-    research_agent = ResearchAgent()
-    publisher_agent = PublisherAgent(output_dir)
+    writer_agent = WriterAgent(websocket)
+    editor_agent = EditorAgent(websocket)
+    research_agent = ResearchAgent(websocket)
+    publisher_agent = PublisherAgent(output_dir, websocket)
 
     # Define a Langchain StateGraph with the ResearchState
     workflow = StateGraph(ResearchState)
@@ -39,18 +39,20 @@ def init_research_team_from_args(output_dir: str) -> CompiledGraph:
 
 
 class ChiefEditorAgent:
-    def __init__(self, task: dict):
+    def __init__(self, task: dict, websocket=None):
         self.task_id = int(
             time.time()
         )  # Currently time based, but can be any unique identifier
         self.output_dir = f"./outputs/run_{self.task_id}_{task.get('query')[0:40]}"
         self.task = task
         os.makedirs(self.output_dir, exist_ok=True)
+        self.websocket = websocket
 
     async def run_research_task(self):
-        chain = init_research_team_from_args(self.output_dir)
+        chain = init_research_team_from_args(self.output_dir, self.websocket)
 
-        print_agent_output(
+        await stream_agent_output(
+            self.websocket,
             f"Starting the research process for query '{self.task.get('query')}'...",
             "MASTER",
         )
