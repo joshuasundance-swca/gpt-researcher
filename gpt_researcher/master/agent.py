@@ -80,11 +80,13 @@ class GPTResearcher:
 
         # If specified, the researcher will use the given urls as the context for the research.
         if self.source_urls:
-            self.context = await self.get_context_by_urls(self.source_urls)
+            context = await self.get_context_by_urls(self.source_urls)
         else:
-            self.context = await self.get_context_by_search(self.query)
+            context = await self.get_context_by_search(self.query)
 
         time.sleep(2)
+
+        self.context = [sd.to_document() for sd in context]
 
         return self.context
 

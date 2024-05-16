@@ -4,7 +4,7 @@ from .publisher import PublisherAgent
 from .reviser import ReviserAgent
 from .reviewer import ReviewerAgent
 from .editor import EditorAgent
-from .master import ChiefEditorAgent
+from .master import ChiefEditorAgent, init_research_team_from_args
 
 __all__ = [
     "ChiefEditorAgent",
@@ -13,5 +13,6 @@ __all__ = [
     "EditorAgent",
     "PublisherAgent",
     "ReviserAgent",
-    "ReviewerAgent"
+    "ReviewerAgent",
+    "init_research_team_from_args"
 ]
