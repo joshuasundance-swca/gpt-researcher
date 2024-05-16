@@ -16,7 +16,7 @@ def query_to_task(query: str) -> dict:
         query=query,
         max_sections=3,
         follow_guidelines=False,
-        model="gpt-4-turbo",
+        model="gpt-4o",
         guidelines=[],
         verbose=True,
         output_file_format="docx",

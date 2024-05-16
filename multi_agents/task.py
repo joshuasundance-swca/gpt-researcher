@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field, field_validator
 
 available_formats = {"markdown", "pdf", "docx"}
 
-default_model = "gpt-4-turbo"
+default_model = "gpt-4o"
 
 default_publish_formats = {"markdown": True, "pdf": True, "docx": True}
 

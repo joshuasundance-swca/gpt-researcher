@@ -113,7 +113,7 @@ async def stream_tuples(query: Req):
 #   "query": "increased flooding risks due to climate change in Astor, FL",
 #   "max_sections": 3,
 #   "follow_guidelines": False,
-#   "model": "gpt-4-turbo",
+#   "model": "gpt-4o",
 #   "guidelines": [],
 #   "verbose": True,
 #   "output_file_format": "docx"

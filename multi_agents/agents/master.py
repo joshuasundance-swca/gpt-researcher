@@ -9,10 +9,10 @@ from memory.research import ResearchState
 from . import WriterAgent, EditorAgent, PublisherAgent, ResearchAgent
 
 
-def init_research_team_from_args(task: dict, output_dir: str) -> CompiledGraph:
+def init_research_team_from_args(output_dir: str) -> CompiledGraph:
     # Initialize agents
     writer_agent = WriterAgent()
-    editor_agent = EditorAgent(task)
+    editor_agent = EditorAgent()
     research_agent = ResearchAgent()
     publisher_agent = PublisherAgent(output_dir)
 
@@ -48,7 +48,7 @@ class ChiefEditorAgent:
         os.makedirs(self.output_dir, exist_ok=True)
 
     async def run_research_task(self):
-        chain = init_research_team_from_args(self.task, self.output_dir)
+        chain = init_research_team_from_args(self.output_dir)
 
         print_agent_output(
             f"Starting the research process for query '{self.task.get('query')}'...",
